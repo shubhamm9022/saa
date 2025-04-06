@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Stream and download your favorite movies easily.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Details</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <header>🎬 Movie Details</header>
+  <main id="movie-detail" style="padding: 2rem;"></main>
+
+  <script>
+    const supabase = supabase.createClient('https://your-project.supabase.co', 'public-anon-key');
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+
+    async function fetchMovie() {
+      const { data, error } = await supabase
+        .from('movies')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (error || !data) {
+        document.getElementById('movie-detail').innerHTML = "<p>Movie not found.</p>";
+        return;
+      }
+
+      document.getElementById('movie-detail').innerHTML = `
+        <div style="text-align:center">
+          <img src="${data.poster}" alt="${data.title}" style="max-width: 300px; border-radius:10px;"><br><br>
+          <h1>${data.title}</h1>
+          <p>${data.description || "No description available."}</p>
+          <a href="${data.streamLink}" target="_blank" class="page-btn">🎥 Stream Now</a>
+          <a href="${data.downloadLink}" target="_blank" class="page-btn" style="background:#1e90ff;">⬇️ Download</a>
+        </div>
+      `;
+    }
+
+    fetchMovie();
+  </script>
+</body>
+</html>

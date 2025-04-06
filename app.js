@@ -1,91 +1,100 @@
-const SUPABASE_URL = 'https://ordokuezdipglyivqwus.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yZG9rdWV6ZGlwZ2x5aXZxd3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NzAzMzcsImV4cCI6MjA1OTQ0NjMzN30.cEQ5G4b83Hd-lnfBKm6wLPZwa2mwpVY78tqFBuWdvjY';
-const pageSize = 10;
+const supabaseUrl = 'https://ordokuezdipglyivqwus.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yZG9rdWV6ZGlwZ2x5aXZxd3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NzAzMzcsImV4cCI6MjA1OTQ0NjMzN30.cEQ5G4b83Hd-lnfBKm6wLPZwa2mwpVY78tqFBuWdvjY';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-let allMovies = [];
-let filteredMovies = [];
+const movieContainer = document.getElementById('movie-container');
+const searchInput = document.getElementById('search-input');
+const pagination = document.getElementById('pagination');
+const categoryButtons = document.querySelectorAll('.category-btn');
+
 let currentPage = 1;
+let moviesPerPage = 10;
 let currentCategory = 'All';
-let searchTerm = '';
+let allMovies = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await fetchMovies();
-  setupEventListeners();
-  renderMovies();
+document.addEventListener('DOMContentLoaded', () => {
+  fetchMovies();
+  disableActions();
+});
+
+searchInput.addEventListener('input', () => {
+  currentPage = 1;
+  displayMovies();
+});
+
+categoryButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentCategory = btn.dataset.category;
+    currentPage = 1;
+    displayMovies();
+  });
 });
 
 async function fetchMovies() {
-  const { data } = await fetch(`${SUPABASE_URL}/rest/v1/movies?select=*`, {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
-  }).then(res => res.json());
-
-  allMovies = data.reverse();
-  filteredMovies = [...allMovies];
+  const { data, error } = await supabase.from('movies').select('*').order('created_at', { ascending: false });
+  if (!error) {
+    allMovies = data;
+    displayMovies();
+  } else {
+    console.error('Error fetching movies:', error);
+  }
 }
 
-function setupEventListeners() {
-  document.getElementById('searchInput').addEventListener('input', e => {
-    searchTerm = e.target.value.toLowerCase();
-    applyFilters();
-  });
+function displayMovies() {
+  let filtered = allMovies;
 
-  document.querySelectorAll('.category').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentCategory = btn.dataset.category;
-      applyFilters();
-    });
-  });
+  const searchText = searchInput.value.toLowerCase();
+  if (searchText) {
+    filtered = filtered.filter(movie =>
+      movie.title.toLowerCase().includes(searchText)
+    );
+  }
 
-  document.getElementById('prevPage').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderMovies();
-    }
-  });
+  if (currentCategory !== 'All') {
+    filtered = filtered.filter(movie => movie.category === currentCategory);
+  }
 
-  document.getElementById('nextPage').addEventListener('click', () => {
-    if (currentPage < Math.ceil(filteredMovies.length / pageSize)) {
-      currentPage++;
-      renderMovies();
-    }
-  });
+  const totalPages = Math.ceil(filtered.length / moviesPerPage);
+  const start = (currentPage - 1) * moviesPerPage;
+  const pageMovies = filtered.slice(start, start + moviesPerPage);
 
-  document.getElementById('themeToggle').addEventListener('click', () => {
-    document.body.classList.toggle('light');
-  });
-}
-
-function applyFilters() {
-  filteredMovies = allMovies.filter(movie =>
-    movie.title.toLowerCase().includes(searchTerm) &&
-    (currentCategory === 'All' || movie.category === currentCategory)
-  );
-  currentPage = 1;
-  renderMovies();
-}
-
-function renderMovies() {
-  const movieList = document.getElementById('movieList');
-  movieList.innerHTML = '';
-
-  const start = (currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const moviesToShow = filteredMovies.slice(start, end);
-
-  moviesToShow.forEach(movie => {
-    const movieCard = document.createElement('div');
-    movieCard.className = 'movie';
-    movieCard.innerHTML = `
-      <img src="${movie.poster}" alt="${movie.title}" />
-      <h3>${movie.title}</h3>
-      <p>${movie.year}</p>
-      <a href="movie.html?slug=${movie.slug}">View</a>
+  movieContainer.innerHTML = '';
+  pageMovies.forEach(movie => {
+    const card = document.createElement('div');
+    card.classList.add('movie-card');
+    card.innerHTML = `
+      <img src="${movie.poster}" alt="${movie.title}" class="movie-poster">
+      <div class="movie-title">${movie.title}</div>
     `;
-    movieList.appendChild(movieCard);
+    card.addEventListener('click', () => {
+      window.location.href = `movie.html?slug=${movie.slug}`;
+    });
+    movieContainer.appendChild(card);
   });
 
-  document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(filteredMovies.length / pageSize)}`;
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  pagination.innerHTML = '';
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.classList.add('page-btn');
+    btn.textContent = i;
+    if (i === currentPage) btn.style.background = '#e50914';
+    btn.addEventListener('click', () => {
+      currentPage = i;
+      displayMovies();
+    });
+    pagination.appendChild(btn);
+  }
+}
+
+// Asset protection
+function disableActions() {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart', e => {
+    if (e.target.tagName === 'IMG') e.preventDefault();
+  });
 }

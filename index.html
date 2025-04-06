@@ -1,46 +1,27 @@
+<!-- Save as index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Watch and Download Latest Bollywood, Hollywood & South Indian Dubbed Movies" />
-  <meta name="keywords" content="movies, bollywood, hollywood, south dubbed, stream, download" />
-  <meta name="author" content="MovieVault" />
-  <meta property="og:title" content="MovieVault - Latest Movies Online" />
-  <meta property="og:description" content="Stream or download the newest Bollywood, Hollywood, and Dubbed movies." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://yourdomain.com/assets/banner.jpg" />
-  <meta property="og:url" content="https://yourdomain.com/" />
-  <title>MovieVault - Latest Movies</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>BollyFlix - Home</title>
+  <link rel="stylesheet" href="styles.css" />
   <script defer src="app.js"></script>
-  <style>
-    /* Disable right click and drag to protect assets */
-    img, video {
-      -webkit-user-drag: none;
-      user-select: none;
-      pointer-events: none;
-    }
-    body {
-      -webkit-user-select: none;
-      user-select: none;
-    }
-  </style>
 </head>
 <body>
   <header>
-    <h1>MovieVault</h1>
-    <input type="text" id="search" placeholder="Search movies..." />
+    <img src="assets/logo.png" alt="BollyFlix Logo" class="logo" />
+    <input type="text" id="searchInput" placeholder="Search movies..." />
     <div class="categories">
       <button data-category="All">All</button>
-      <button data-category="Bollywood">Bollywood</button>
       <button data-category="Hollywood">Hollywood</button>
-      <button data-category="South">South Dubbed</button>
+      <button data-category="Bollywood">Bollywood</button>
+      <button data-category="South Indian Dubbed">South Indian Dubbed</button>
     </div>
   </header>
 
   <main>
-    <div id="movie-grid" class="grid"></div>
+    <div id="movieGrid" class="grid"></div>
     <div class="pagination">
       <button id="prevPage">Previous</button>
       <span id="pageNum">1</span>
@@ -49,7 +30,10 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 MovieVault. All rights reserved.</p>
+    <a href="#">Request Movie</a> |
+    <a href="#">DMCA</a> |
+    <a href="#">Request Removal</a>
   </footer>
 </body>
 </html>
+

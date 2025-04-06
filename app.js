@@ -1,100 +1,67 @@
-const supabaseUrl = 'https://ordokuezdipglyivqwus.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yZG9rdWV6ZGlwZ2x5aXZxd3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NzAzMzcsImV4cCI6MjA1OTQ0NjMzN30.cEQ5G4b83Hd-lnfBKm6wLPZwa2mwpVY78tqFBuWdvjY';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-const movieContainer = document.getElementById('movie-container');
-const searchInput = document.getElementById('search-input');
-const pagination = document.getElementById('pagination');
-const categoryButtons = document.querySelectorAll('.category-btn');
-
+let movies = [];
 let currentPage = 1;
-let moviesPerPage = 10;
-let currentCategory = 'All';
-let allMovies = [];
+const moviesPerPage = 10;
 
-document.addEventListener('DOMContentLoaded', () => {
-  fetchMovies();
-  disableActions();
-});
-
-searchInput.addEventListener('input', () => {
-  currentPage = 1;
-  displayMovies();
-});
-
-categoryButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentCategory = btn.dataset.category;
-    currentPage = 1;
-    displayMovies();
+fetch('movies.json')
+  .then(res => res.json())
+  .then(data => {
+    movies = data;
+    renderMovies();
   });
-});
 
-async function fetchMovies() {
-  const { data, error } = await supabase.from('movies').select('*').order('created_at', { ascending: false });
-  if (!error) {
-    allMovies = data;
-    displayMovies();
-  } else {
-    console.error('Error fetching movies:', error);
-  }
-}
-
-function displayMovies() {
-  let filtered = allMovies;
-
-  const searchText = searchInput.value.toLowerCase();
-  if (searchText) {
-    filtered = filtered.filter(movie =>
-      movie.title.toLowerCase().includes(searchText)
-    );
-  }
-
-  if (currentCategory !== 'All') {
-    filtered = filtered.filter(movie => movie.category === currentCategory);
-  }
-
-  const totalPages = Math.ceil(filtered.length / moviesPerPage);
+function renderMovies() {
+  const grid = document.getElementById('movieGrid');
   const start = (currentPage - 1) * moviesPerPage;
-  const pageMovies = filtered.slice(start, start + moviesPerPage);
+  const end = start + moviesPerPage;
+  const paginated = movies.slice(start, end);
 
-  movieContainer.innerHTML = '';
-  pageMovies.forEach(movie => {
-    const card = document.createElement('div');
-    card.classList.add('movie-card');
-    card.innerHTML = `
-      <img src="${movie.poster}" alt="${movie.title}" class="movie-poster">
-      <div class="movie-title">${movie.title}</div>
-    `;
-    card.addEventListener('click', () => {
-      window.location.href = `movie.html?slug=${movie.slug}`;
-    });
-    movieContainer.appendChild(card);
-  });
+  grid.innerHTML = paginated.map(movie => `
+    <div class="movie-card">
+      <a href="movie.html?slug=${movie.slug}">
+        <img src="${movie.poster}" alt="${movie.title}" />
+        <h4>${movie.title} (${movie.year})</h4>
+      </a>
+    </div>
+  `).join('');
 
-  renderPagination(totalPages);
+  document.getElementById('pageNum').textContent = currentPage;
 }
 
-function renderPagination(totalPages) {
-  pagination.innerHTML = '';
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement('button');
-    btn.classList.add('page-btn');
-    btn.textContent = i;
-    if (i === currentPage) btn.style.background = '#e50914';
-    btn.addEventListener('click', () => {
-      currentPage = i;
-      displayMovies();
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const value = e.target.value.toLowerCase();
+  fetch('movies.json')
+    .then(res => res.json())
+    .then(data => {
+      movies = data.filter(movie => movie.title.toLowerCase().includes(value));
+      currentPage = 1;
+      renderMovies();
     });
-    pagination.appendChild(btn);
+});
+
+document.querySelectorAll('.categories button').forEach(button => {
+  button.addEventListener('click', () => {
+    const category = button.dataset.category;
+    fetch('movies.json')
+      .then(res => res.json())
+      .then(data => {
+        movies = category === 'All' ? data : data.filter(m => m.category === category);
+        currentPage = 1;
+        renderMovies();
+      });
+  });
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+  const maxPages = Math.ceil(movies.length / moviesPerPage);
+  if (currentPage < maxPages) {
+    currentPage++;
+    renderMovies();
   }
-}
+});
 
-// Asset protection
-function disableActions() {
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('dragstart', e => {
-    if (e.target.tagName === 'IMG') e.preventDefault();
-  });
-}
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderMovies();
+  }
+});

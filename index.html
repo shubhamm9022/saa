@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BollyVault</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">BollyVault</div>
+    <button id="themeToggle">Toggle Theme</button>
+  </header>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search movies..." />
+    <div class="categories">
+      <button class="category" data-category="All">All</button>
+      <button class="category" data-category="Hollywood">Hollywood</button>
+      <button class="category" data-category="Bollywood">Bollywood</button>
+      <button class="category" data-category="South Indian Dubbed">South Indian Dubbed</button>
+    </div>
+  </div>
+
+  <main id="movieList"></main>
+
+  <div class="pagination">
+    <button id="prevPage">Prev</button>
+    <span id="pageInfo"></span>
+    <button id="nextPage">Next</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
